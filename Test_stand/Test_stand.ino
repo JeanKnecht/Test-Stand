@@ -1,4 +1,4 @@
-float calibration_value = 213.50 ;//215.43 212.28 213.13 215.43 213.35
+float calibration_value = 215.14 ;//215.10 215.27 215.026 215.17
 
 #include <Arduino.h>
 #include "HX711.h"
@@ -19,7 +19,7 @@ File Data;
 int pinCS = 10;
 
 //moving average filter
-movingAvg avgThrust(10); 
+movingAvg avgThrust(8); 
 float force_value_avg;
 float force_value_avg_fixed;
 HX711 scale;
@@ -33,7 +33,9 @@ void setup() {
     if(Data){
       Data.print("time(s)");
       Data.print(",");
-      Data.println("thrust(N)");
+      Data.print("thrust(N)");
+      Data.print(",");
+      Data.println("thrust RAW(N)");
       Data.close();
       }
   
@@ -50,10 +52,10 @@ void setup() {
 
 void loop() {
   tijd = millis();
-  force_value = (force())* 100000;
-  force_value_avg = avgThrust.reading(force_value);
+  force_value = force();
+  force_value_avg = avgThrust.reading(force_value*100000);
   force_value_avg_fixed = (force_value_avg/100000);
-  saveData(force_value_avg_fixed, tijd);
+  saveData(force_value_avg_fixed, tijd, force_value);
   Serial.println(force_value_avg_fixed,5);
   Serial.println(tijd);
 
@@ -65,12 +67,14 @@ float force(){
   return gravity;
 }
 
-void saveData(float x, int t){
+void saveData(float x, int t, float y){
   Data = SD.open("Data.csv", FILE_WRITE);
   if(Data){
     Data.print(t);
     Data.print(",");
-    Data.println(x,5);
+    Data.print(x,5);
+    Data.print(",");
+    Data.println(y,5);
     }
    Data.close();
   }
