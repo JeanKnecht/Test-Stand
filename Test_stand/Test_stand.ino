@@ -1,4 +1,4 @@
-float calibration_value = 215.14 ;//215.10 215.27 215.026 215.17
+float calibration_value = 215.70 ;//215.10 215.27 215.026 215.17
 
 #include <Arduino.h>
 #include "HX711.h"
@@ -17,6 +17,7 @@ int tijd;
 //SD logger
 File Data;
 int pinCS = 10;
+bool SD_actief = true;
 
 //moving average filter
 movingAvg avgThrust(8); 
@@ -24,26 +25,49 @@ float force_value_avg;
 float force_value_avg_fixed;
 HX711 scale;
 
+//LED and Button
+
+int led = 3;
+int button = 2;
+
 void setup() {
   //delay(10000);
   Serial.begin(9600);
-  pinMode(pinCS, OUTPUT);
-  if (SD.begin()){
-    Data = SD.open("Data.csv", FILE_WRITE);
-    if(Data){
-      Data.print("time(s)");
-      Data.print(",");
-      Data.print("thrust(N)");
-      Data.print(",");
-      Data.println("thrust RAW(N)");
-      Data.close();
-      }
   
-    }else{
-      return;
-      }
-  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);    
+  pinMode(pinCS, OUTPUT);
+  pinMode(led, OUTPUT);
+  pinMode(button, INPUT);
+  digitalWrite(led, HIGH);
+  
+  while(SD_actief){
+      SD.begin();
+      Data = SD.open("Data.csv", FILE_WRITE);
+      if(Data){
+        Serial.println("sd is actief");
+        Data.print("time(s)");
+        Data.print(",");
+        Data.print("thrust(N)");
+        Data.print(",");
+        Data.println("thrust RAW(N)");
+        Data.close();
+        while(SD_actief){
+          led_SD();
+          int trigger = digitalRead(button);
+          if(trigger == 1){
+            SD_actief = false;
+            led_armed();
+            }
+          }
+        }
         
+      else{
+        Serial.println("nog niet actief");
+        }       
+      delay(1000);
+   }
+
+
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);    
   scale.set_scale(calibration_value);
   scale.tare();
 
@@ -58,6 +82,12 @@ void loop() {
   saveData(force_value_avg_fixed, tijd, force_value);
   Serial.println(force_value_avg_fixed,5);
   Serial.println(tijd);
+
+  int trigger = digitalRead(button);
+  if(trigger == 1){
+    led_armed();
+    exit(0);
+    }
 
 }
 
@@ -77,4 +107,18 @@ void saveData(float x, int t, float y){
     Data.println(y,5);
     }
    Data.close();
+  }
+void led_SD(){
+  digitalWrite(led, HIGH);
+  delay(500);
+  digitalWrite(led, LOW);
+  delay(500);
+  }
+void led_armed(){
+  for(int i = 0; i<8; i++){
+    digitalWrite(led, LOW);
+    delay(100);
+    digitalWrite(led, HIGH);
+    delay(100);
+    }
   }
