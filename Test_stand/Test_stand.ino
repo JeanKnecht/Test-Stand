@@ -46,10 +46,7 @@ void setup() {
         Serial.println("sd is actief");
         Data.print("time(s)");
         Data.print(",");
-        Data.print("thrust(N)");
-        Data.print(",");
-        Data.println("thrust RAW(N)");
-        Data.close();
+        Data.println("thrust(N)");
         while(SD_actief){
           led_SD();
           int trigger = digitalRead(button);
@@ -77,14 +74,15 @@ void setup() {
 void loop() {
   tijd = millis();
   force_value = force();
-  force_value_avg = avgThrust.reading(force_value*100000);
-  force_value_avg_fixed = (force_value_avg/100000);
-  saveData(force_value_avg_fixed, tijd, force_value);
+  //force_value_avg = avgThrust.reading(force_value*100000);
+  //force_value_avg_fixed = (force_value_avg/100000);
+  saveData(tijd, force_value);
   Serial.println(force_value_avg_fixed,5);
   Serial.println(tijd);
 
   int trigger = digitalRead(button);
   if(trigger == 1){
+    Data.close();
     led_armed();
     exit(0);
     }
@@ -97,16 +95,10 @@ float force(){
   return gravity;
 }
 
-void saveData(float x, int t, float y){
-  Data = SD.open("Data.csv", FILE_WRITE);
-  if(Data){
-    Data.print(t);
-    Data.print(",");
-    Data.print(x,5);
-    Data.print(",");
-    Data.println(y,5);
-    }
-   Data.close();
+void saveData(int t, float x){
+  Data.print(t);
+  Data.print(",");
+  Data.println(x,5);
   }
 void led_SD(){
   digitalWrite(led, HIGH);
