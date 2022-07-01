@@ -43,7 +43,7 @@ void setup() {
       SD.begin();
       Data = SD.open("Data.csv", FILE_WRITE);
       if(Data){
-        Serial.println("sd is actief");
+        //Serial.println("sd is actief");
         Data.print("time(s)");
         Data.print(",");
         Data.println("thrust(N)");
@@ -58,7 +58,7 @@ void setup() {
         }
         
       else{
-        Serial.println("nog niet actief");
+        //Serial.println("nog niet actief");
         }       
       delay(1000);
    }
@@ -77,8 +77,8 @@ void loop() {
   //force_value_avg = avgThrust.reading(force_value*100000);
   //force_value_avg_fixed = (force_value_avg/100000);
   saveData(tijd, force_value);
-  Serial.println(force_value_avg_fixed,5);
-  Serial.println(tijd);
+  //Serial.println(force_value_avg_fixed,5);
+  //Serial.println(tijd);
 
   int trigger = digitalRead(button);
   if(trigger == 1){
